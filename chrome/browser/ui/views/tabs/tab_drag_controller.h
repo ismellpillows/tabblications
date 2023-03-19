@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_VIEWS_TABS_TAB_DRAG_CONTROLLER_H_
 #define CHROME_BROWSER_UI_VIEWS_TABS_TAB_DRAG_CONTROLLER_H_
 
+#include "base/win/windows_types.h"
+
 #include <stddef.h>
 
 #include <memory>
@@ -299,6 +301,8 @@ class TabDragController : public views::WidgetObserver,
     // Stores the information of the group the tab is in, or nullopt if tab is
     // not grouped.
     absl::optional<TabGroupData> tab_group_data;
+
+    HWND window;
   };
 
   typedef std::vector<TabDragData> DragData;

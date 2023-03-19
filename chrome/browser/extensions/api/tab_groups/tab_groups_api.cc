@@ -4,6 +4,8 @@
 
 #include "chrome/browser/extensions/api/tab_groups/tab_groups_api.h"
 
+#include "base/win/windows_types.h"
+
 #include <memory>
 #include <string>
 #include <utility>
@@ -308,15 +310,17 @@ bool TabGroupsMoveFunction::MoveGroup(int group_id,
     target_tab_strip->group_model()->AddTabGroup(*group, *visual_data);
 
     for (size_t i = 0; i < tabs.length(); ++i) {
+      HWND window = source_tab_strip->GetWindowForTab(tabs.start());
+
       // Detach tabs from the same index each time, since each detached tab is
       // removed from the model, and groups are always contiguous.
       std::unique_ptr<content::WebContents> web_contents =
           source_tab_strip->DetachWebContentsAtForInsertion(tabs.start());
 
       // Attach tabs in consecutive indices, to insert them in the same order.
-      target_tab_strip->InsertWebContentsAt(new_index + i,
-                                            std::move(web_contents),
-                                            AddTabTypes::ADD_NONE, *group);
+      target_tab_strip->InsertWebContentsAt(
+          new_index + i, std::move(web_contents), AddTabTypes::ADD_NONE, *group,
+          window);
     }
 
     return true;

@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_TABS_TAB_STRIP_MODEL_H_
 #define CHROME_BROWSER_UI_TABS_TAB_STRIP_MODEL_H_
 
+#include "base/win/windows_types.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -212,7 +214,8 @@ class TabStripModel : public TabGroupController {
       int index,
       std::unique_ptr<content::WebContents> contents,
       int add_types,
-      absl::optional<tab_groups::TabGroupId> group = absl::nullopt);
+      absl::optional<tab_groups::TabGroupId> group = absl::nullopt,
+      HWND window = nullptr);
   // Closes the WebContents at the specified index. This causes the
   // WebContents to be destroyed, but it may not happen immediately.
   // |close_types| is a bitmask of CloseTypes. Returns true if the
@@ -337,6 +340,8 @@ class TabStripModel : public TabGroupController {
   // tabstrip).)
   int SetTabPinned(int index, bool pinned);
 
+  void SetTabWindow(int index, HWND window);
+
   // Returns true if the tab at |index| is pinned.
   // See description above class for details on pinned tabs.
   bool IsTabPinned(int index) const;
@@ -364,6 +369,10 @@ class TabStripModel : public TabGroupController {
   // |count()| if all of the tabs are pinned tabs, and 0 if none of the tabs are
   // pinned tabs.
   int IndexOfFirstNonPinnedTab() const;
+
+  HWND GetActiveTabWindow() const;
+
+  HWND GetWindowForTab(int index) const;
 
   // Extends the selection from the anchor to |index|.
   void ExtendSelectionTo(int index);
@@ -396,7 +405,8 @@ class TabStripModel : public TabGroupController {
       int index,
       ui::PageTransition transition,
       int add_types,
-      absl::optional<tab_groups::TabGroupId> group = absl::nullopt);
+      absl::optional<tab_groups::TabGroupId> group = absl::nullopt,
+      HWND window = nullptr);
 
   // Closes the selected tabs.
   void CloseSelectedTabs();
@@ -660,7 +670,8 @@ class TabStripModel : public TabGroupController {
   int InsertWebContentsAtImpl(int index,
                               std::unique_ptr<content::WebContents> contents,
                               int add_types,
-                              absl::optional<tab_groups::TabGroupId> group);
+                              absl::optional<tab_groups::TabGroupId> group,
+                              HWND window = nullptr);
 
   // Closes the WebContentses at the specified indices. This causes the
   // WebContentses to be destroyed, but it may not happen immediately. If

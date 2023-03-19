@@ -70,6 +70,7 @@
 #include "chrome/browser/ui/webui/user_actions/user_actions_ui.h"
 #include "chrome/browser/ui/webui/version/version_ui.h"
 #include "chrome/browser/ui/webui/webui_util.h"
+#include "chrome/browser/ui/webui/window_tab/window_tab_ui.h"
 #include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/pref_names.h"
@@ -1126,6 +1127,9 @@ WebUIFactoryFunction GetWebUIFactoryFunction(WebUI* web_ui,
   if (url.host_piece() == chrome::kChromeUIWhatsNewHost &&
       base::FeatureList::IsEnabled(features::kChromeWhatsNewUI)) {
     return &NewWebUI<WhatsNewUI>;
+  }
+  if (url.host_piece() == chrome::kChromeUIWindowTabHost) {
+    return &NewWebUI<WindowTabUI>;
   }
   if (url.host_piece() == chrome::kChromeUIOmniboxPopupHost &&
       base::FeatureList::IsEnabled(omnibox::kWebUIOmniboxPopup)) {

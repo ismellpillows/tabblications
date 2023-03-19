@@ -225,6 +225,8 @@ const char kChromeUIWelcomeURL[] = "chrome://welcome/";
 const char kChromeUIWhatsNewHost[] = "whats-new";
 const char kChromeUIWhatsNewURL[] = "chrome://whats-new/";
 const char kChromeUIWebuiGalleryHost[] = "webui-gallery";
+const char kChromeUIWindowTabHost[] = "window-tab";
+const char kChromeUIWindowTabURL[] = "chrome://window-tab/";
 
 #if BUILDFLAG(IS_WIN)
 // TODO(crbug.com/1003960): Remove when issue is resolved.

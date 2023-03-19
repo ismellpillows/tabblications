@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_VIEWS_TABS_TAB_SLOT_CONTROLLER_H_
 #define CHROME_BROWSER_UI_VIEWS_TABS_TAB_SLOT_CONTROLLER_H_
 
+#include "base/win/windows_types.h"
+
 #include <string>
 
 #include "chrome/browser/ui/tabs/tab_types.h"
@@ -116,6 +118,8 @@ class TabSlotController {
 
   // Returns whether |tab| is the first in the model.
   virtual bool IsTabFirst(const Tab* tab) const = 0;
+
+  virtual HWND GetWindowForTab(const Tab* tab) const = 0;
 
   // Returns true if any tab or one of its children has focus.
   virtual bool IsFocusInTabs() const = 0;

@@ -13,9 +13,12 @@
 #include "base/callback_helpers.h"
 #include "base/metrics/user_metrics.h"
 #include "base/task/thread_pool.h"
+#include "chrome/browser/apps/app_service/web_contents_app_id_utils.h"
 #include "chrome/browser/autocomplete/autocomplete_classifier_factory.h"
 #include "chrome/browser/defaults.h"
 #include "chrome/browser/profiles/profile.h"
+#include "chrome/browser/renderer_host/chrome_navigation_ui_data.h"
+#include "chrome/browser/tab_contents/tab_util.h"
 #include "chrome/browser/themes/theme_properties.h"
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/browser_navigator.h"
@@ -28,6 +31,7 @@
 #include "chrome/browser/ui/views/tabs/tab_strip.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/browser/ui/views/touch_uma/touch_uma.h"
+#include "chrome/browser/ui/window_tabs.h"
 #include "components/omnibox/browser/autocomplete_classifier.h"
 #include "components/omnibox/browser/autocomplete_match.h"
 #include "content/public/browser/browser_thread.h"
@@ -312,6 +316,110 @@ void BrowserRootView::OnMouseExited(const ui::MouseEvent& event) {
   scroll_remainder_x_ = 0;
   scroll_remainder_y_ = 0;
   RootView::OnMouseExited(event);
+}
+
+bool BrowserRootView::HandleWindowDragged(const gfx::Point& location) {
+  if (!browser_view_->GetIsNormalType() || !tabstrip()->GetVisible()) {
+    return false;
+  }
+
+  gfx::Point loc_in_tabstrip(location);
+  ConvertPointFromScreen(tabstrip(), &loc_in_tabstrip);
+  BrowserRootView::DropTarget* const target =
+      tabstrip()->GetDropTarget(loc_in_tabstrip);
+
+  if (!target) {
+    OnDragExited();
+    return false;
+  }
+
+  if (!drop_info_) {
+    drop_info_ = std::make_unique<DropInfo>();
+  }
+
+  drop_info_->target = target;
+
+  gfx::Point loc_in_view(location);
+  ConvertPointFromScreen(target->GetViewForDrop(), &loc_in_view);
+
+  drop_info_->index = target->GetDropIndex(ui::DropTargetEvent(
+      {}, gfx::PointF(loc_in_view), {}, ui::DragDropTypes::DRAG_LINK));
+
+  target->HandleDragUpdate(drop_info_->index);
+
+  return true;
+}
+
+void LoadURLInContents(content::WebContents* target_contents,
+                       const GURL& url,
+                       WindowOpenDisposition disposition) {
+  content::NavigationController::LoadURLParams load_url_params(url);
+  load_url_params.navigation_ui_data =
+      ChromeNavigationUIData::CreateForMainFrameNavigation(target_contents,
+                                                           disposition, false);
+
+  target_contents->GetController().LoadURLWithParams(load_url_params);
+}
+
+void BrowserRootView::HandleWindowDropped(HWND window) {
+  const GURL url("chrome://window-tab");
+
+  Browser* const browser = browser_view_->browser();
+  TabStripModel* const model = browser->tab_strip_model();
+
+  if (drop_info_->index->drop_before) {
+    absl::optional<tab_groups::TabGroupId> group;
+    if (drop_info_->index->drop_in_group &&
+        drop_info_->index->value < model->count()) {
+      group = model->GetTabGroupForTab(drop_info_->index->value);
+    }
+
+    content::WebContents::CreateParams create_params(
+        browser->profile(),
+        tab_util::GetSiteInstanceForNewTab(browser->profile(), url));
+
+#if defined(USE_AURA)
+    if (browser->window() && browser->window()->GetNativeWindow()) {
+      create_params.context = browser->window()->GetNativeWindow();
+    }
+#endif
+
+    std::unique_ptr<content::WebContents> contents_to_insert =
+        content::WebContents::Create(create_params);
+
+    LoadURLInContents(contents_to_insert.get(), url,
+                      WindowOpenDisposition::NEW_FOREGROUND_TAB);
+
+    BrowserNavigatorWebContentsAdoption::AttachTabHelpers(
+        contents_to_insert.get());
+    std::string app_id;
+    apps::SetAppIdForWebContents(browser->profile(),
+                                 contents_to_insert.get(), app_id);
+
+    model->AddWebContents(
+        std::move(contents_to_insert), drop_info_->index->value,
+        ui::PAGE_TRANSITION_LINK,
+        AddTabTypes::ADD_ACTIVE | AddTabTypes::ADD_FORCE_INDEX, group, window);
+  } else {
+    content::WebContents* contents_to_navigate =
+        model->GetWebContentsAt(drop_info_->index->value);
+
+
+    LoadURLInContents(contents_to_navigate, url,
+                      WindowOpenDisposition::CURRENT_TAB);
+    model->SetTabWindow(drop_info_->index->value, window);
+
+    browser->UpdateUIForNavigationInTab(contents_to_navigate,
+                                        ui::PAGE_TRANSITION_LINK,
+                                        NavigateParams::SHOW_WINDOW, true);
+    model->ActivateTabAt(drop_info_->index->value);
+
+    WindowTabs::Observe(browser_view_, true, window);
+  }
+
+  browser->window()->Show();
+
+  OnDragExited();
 }
 
 void BrowserRootView::PaintChildren(const views::PaintInfo& paint_info) {

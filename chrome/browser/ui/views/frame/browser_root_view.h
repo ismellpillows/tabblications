@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_VIEWS_FRAME_BROWSER_ROOT_VIEW_H_
 #define CHROME_BROWSER_UI_VIEWS_FRAME_BROWSER_ROOT_VIEW_H_
 
+#include "base/win/windows_types.h"
+
 #include <memory>
 
 #include "base/gtest_prod_util.h"
@@ -82,6 +84,9 @@ class BrowserRootView : public views::internal::RootView {
   DropCallback GetDropCallback(const ui::DropTargetEvent& event) override;
   bool OnMouseWheel(const ui::MouseWheelEvent& event) override;
   void OnMouseExited(const ui::MouseEvent& event) override;
+
+  bool HandleWindowDragged(const gfx::Point& location);
+  void HandleWindowDropped(HWND window);
 
  protected:
   // views::View:

@@ -10,11 +10,17 @@
 class GURL;
 
 namespace content {
+class WebContents;
 class BrowserContext;
 class NavigationHandle;
 }
 
 struct NavigateParams;
+
+class BrowserNavigatorWebContentsAdoption {
+ public:
+  static void AttachTabHelpers(content::WebContents* contents);
+};
 
 // Navigates according to the configuration specified in |params|.
 // Returns the NavigationHandle* for the started navigation, which might be null

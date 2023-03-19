@@ -4,6 +4,8 @@
 
 #include "chrome/browser/ui/views/tabs/browser_tab_strip_controller.h"
 
+#include "base/win/windows_types.h"
+
 #include <limits>
 #include <memory>
 #include <utility>
@@ -273,6 +275,12 @@ bool BrowserTabStripController::IsTabSelected(int model_index) const {
 
 bool BrowserTabStripController::IsTabPinned(int model_index) const {
   return model_->ContainsIndex(model_index) && model_->IsTabPinned(model_index);
+}
+
+HWND BrowserTabStripController::GetWindowForTab(int model_index) const {
+  return model_->ContainsIndex(model_index)
+             ? model_->GetWindowForTab(model_index)
+             : nullptr;
 }
 
 void BrowserTabStripController::SelectTab(int model_index,

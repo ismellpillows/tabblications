@@ -4,6 +4,8 @@
 
 #include "chrome/browser/ui/views/tabs/tab_strip.h"
 
+#include "base/win/windows_types.h"
+
 #include <stddef.h>
 
 #include <iterator>
@@ -354,6 +356,10 @@ class TabStrip::TabDragContextImpl : public TabDragContext,
 
   bool IsTabPinned(const Tab* tab) const override {
     return tab_strip_->IsTabPinned(tab);
+  }
+
+  HWND GetWindowForTab(const Tab* tab) const override {
+    return tab_strip_->GetWindowForTab(tab);
   }
 
   int GetPinnedTabCount() const override {
@@ -1577,6 +1583,13 @@ bool TabStrip::IsTabPinned(const Tab* tab) const {
   absl::optional<int> model_index = GetModelIndexOf(tab);
   return model_index.has_value() &&
          controller_->IsTabPinned(model_index.value());
+}
+
+HWND TabStrip::GetWindowForTab(const Tab* tab) const {
+  absl::optional<int> model_index = GetModelIndexOf(tab);
+  return model_index.has_value()
+             ? controller_->GetWindowForTab(model_index.value())
+             : nullptr;
 }
 
 bool TabStrip::IsTabFirst(const Tab* tab) const {

@@ -35,13 +35,13 @@ void SetPreviousGpuModePref(bool enabled) {
 // static
 void GpuModeManager::RegisterPrefs(PrefRegistrySimple* registry) {
   registry->RegisterBooleanPref(
-      prefs::kHardwareAccelerationModeEnabled, true);
+      prefs::kHardwareAccelerationModeEnabled, false);
   registry->RegisterBooleanPref(
-      prefs::kHardwareAccelerationModePrevious, true);
+      prefs::kHardwareAccelerationModePrevious, false);
 }
 
 GpuModeManager::GpuModeManager()
-    : initial_gpu_mode_pref_(true) {
+    : initial_gpu_mode_pref_(false) {
   if (g_browser_process->local_state()) {  // Skip for unit tests
     pref_registrar_.Init(g_browser_process->local_state());
     // Do nothing when the pref changes. It takes effect after
@@ -78,9 +78,6 @@ bool GpuModeManager::initial_gpu_mode_pref() const {
 
 // static
 bool GpuModeManager::IsGpuModePrefEnabled() {
-  PrefService* service = g_browser_process->local_state();
-  DCHECK(service);
-  return service->GetBoolean(
-      prefs::kHardwareAccelerationModeEnabled);
+  return false;
 }
 

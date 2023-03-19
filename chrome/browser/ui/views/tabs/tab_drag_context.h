@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_VIEWS_TABS_TAB_DRAG_CONTEXT_H_
 #define CHROME_BROWSER_UI_VIEWS_TABS_TAB_DRAG_CONTEXT_H_
 
+#include "base/win/windows_types.h"
+
 #include <memory>
 #include <vector>
 
@@ -62,6 +64,7 @@ class TabDragContext : public TabDragContextBase {
   virtual int GetPinnedTabCount() const = 0;
   virtual TabGroupHeader* GetTabGroupHeader(
       const tab_groups::TabGroupId& group) const = 0;
+  virtual HWND GetWindowForTab(const Tab* tab) const = 0;
   virtual TabStripModel* GetTabStripModel() = 0;
 
   // Returns the tab drag controller owned by this delegate, or null if none.

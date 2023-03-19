@@ -4,6 +4,8 @@
 
 #include "chrome/browser/ui/views/frame/browser_view.h"
 
+#include "base/win/windows_types.h"
+
 #include <stdint.h>
 
 #include <memory>
@@ -165,6 +167,7 @@
 #include "chrome/browser/ui/views/web_apps/frame_toolbar/web_app_frame_toolbar_view.h"
 #include "chrome/browser/ui/web_applications/app_browser_controller.h"
 #include "chrome/browser/ui/window_sizer/window_sizer.h"
+#include "chrome/browser/ui/window_tabs.h"
 #include "chrome/common/channel_info.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_switches.h"
@@ -3016,6 +3019,13 @@ void BrowserView::OnTabStripModelChanged(
     TabStripModel* tab_strip_model,
     const TabStripModelChange& change,
     const TabStripSelectionChange& selection) {
+  if (selection.active_tab_changed() && !tab_strip_model->empty()) {
+    if (HWND window = tab_strip_model->GetWindowForTab(
+            selection.new_model.active().value())) {
+      WindowTabs::Observe(this);
+    }
+  }
+     
   // When the selected tab changes, elements in the omnibox can change, which
   // can change its preferred size. Re-lay-out the toolbar to reflect the
   // possible change.
@@ -4002,6 +4012,8 @@ void BrowserView::AddedToWidget() {
 
   MaybeInitializeWebUITabStrip();
   MaybeShowWebUITabStripIPH();
+
+  WindowTabs::Enable();
 
   // Want to show this promo, but not right at startup.
   base::SequencedTaskRunner::GetCurrentDefault()->PostDelayedTask(

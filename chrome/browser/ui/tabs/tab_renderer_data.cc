@@ -14,6 +14,8 @@
 #include "chrome/browser/ui/tabs/tab_strip_model_delegate.h"
 #include "chrome/browser/ui/tabs/tab_utils.h"
 #include "chrome/browser/ui/thumbnails/thumbnail_tab_helper.h"
+#include "chrome/browser/ui/window_tabs.h"
+#include "chrome/common/url_constants.h"
 #include "components/security_interstitials/content/security_interstitial_tab_helper.h"
 #include "content/public/browser/navigation_entry.h"
 #include "content/public/browser/web_contents.h"
@@ -39,7 +41,13 @@ TabRendererData TabRendererData::FromTabInModel(TabStripModel* model,
       security_interstitial_tab_helper->ShouldDisplayURL();
   TabRendererData data;
   TabUIHelper* const tab_ui_helper = TabUIHelper::FromWebContents(contents);
-  data.favicon = tab_ui_helper->GetFavicon().AsImageSkia();
+  data.last_committed_url = contents->GetLastCommittedURL();
+  data.window = model->GetWindowForTab(index);
+  bool isWindowTabUrl =
+      data.last_committed_url.SchemeIs(content::kChromeUIScheme) &&
+      data.last_committed_url.host() == chrome::kChromeUIWindowTabHost;
+  data.favicon = data.window && isWindowTabUrl ? WindowTabs::GetIcon(data.window)
+                             : tab_ui_helper->GetFavicon().AsImageSkia();
   ThumbnailTabHelper* const thumbnail_tab_helper =
       ThumbnailTabHelper::FromWebContents(contents);
   if (thumbnail_tab_helper) {
@@ -47,14 +55,14 @@ TabRendererData TabRendererData::FromTabInModel(TabStripModel* model,
     data.is_tab_discarded = thumbnail_tab_helper->is_tab_discarded();
   }
   data.network_state = TabNetworkStateForWebContents(contents);
-  data.title = tab_ui_helper->GetTitle();
+  data.title = data.window && isWindowTabUrl ? WindowTabs::GetTitle(data.window)
+                           : tab_ui_helper->GetTitle();
   data.visible_url = contents->GetVisibleURL();
   // Allow empty title for chrome-untrusted:// URLs.
   if (data.title.empty() &&
       data.visible_url.SchemeIs(content::kChromeUIUntrustedScheme)) {
     data.should_render_empty_title = true;
   }
-  data.last_committed_url = contents->GetLastCommittedURL();
   data.should_display_url = should_display_url;
   data.crashed_status = contents->GetCrashedStatus();
   data.incognito = contents->GetBrowserContext()->IsOffTheRecord();
@@ -68,7 +76,7 @@ TabRendererData TabRendererData::FromTabInModel(TabStripModel* model,
   content::NavigationEntry* entry =
       contents->GetController().GetLastCommittedEntry();
   data.should_themify_favicon =
-      entry && favicon::ShouldThemifyFaviconForEntry(entry);
+      !isWindowTabUrl && entry && favicon::ShouldThemifyFaviconForEntry(entry);
 
   return data;
 }
@@ -93,7 +101,8 @@ bool TabRendererData::operator==(const TabRendererData& other) const {
          incognito == other.incognito && show_icon == other.show_icon &&
          pinned == other.pinned && blocked == other.blocked &&
          alert_state == other.alert_state &&
-         should_hide_throbber == other.should_hide_throbber;
+         should_hide_throbber == other.should_hide_throbber &&
+         window == other.window;
 }
 
 bool TabRendererData::IsCrashed() const {

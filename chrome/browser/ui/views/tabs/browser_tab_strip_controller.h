@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_VIEWS_TABS_BROWSER_TAB_STRIP_CONTROLLER_H_
 #define CHROME_BROWSER_UI_VIEWS_TABS_BROWSER_TAB_STRIP_CONTROLLER_H_
 
+#include "base/win/windows_types.h"
+
 #include <memory>
 #include <vector>
 
@@ -66,6 +68,7 @@ class BrowserTabStripController : public TabStripController,
   absl::optional<int> GetActiveIndex() const override;
   bool IsTabSelected(int model_index) const override;
   bool IsTabPinned(int model_index) const override;
+  HWND GetWindowForTab(int model_index) const override;
   void SelectTab(int model_index, const ui::Event& event) override;
   void ExtendSelectionTo(int model_index) override;
   void ToggleSelected(int model_index) override;

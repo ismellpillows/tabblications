@@ -4,6 +4,8 @@
 
 #include "chrome/browser/ui/browser_commands.h"
 
+#include "base/win/windows_types.h"
+
 #include <memory>
 #include <utility>
 #include <vector>
@@ -239,10 +241,14 @@ void CreateAndShowNewWindowWithContents(
   // WebContents is invisible and won't size it.
   new_browser->window()->Show();
 
+  HWND window = original_browser->tab_strip_model()->GetWindowForTab(
+      original_browser->tab_strip_model()->GetIndexOfWebContents(
+          contents.get()));
+
   // The page transition below is only for the purpose of inserting the tab.
-  new_browser->tab_strip_model()->AddWebContents(std::move(contents), -1,
-                                                 ui::PAGE_TRANSITION_LINK,
-                                                 AddTabTypes::ADD_ACTIVE);
+  new_browser->tab_strip_model()->AddWebContents(
+      std::move(contents), -1, ui::PAGE_TRANSITION_LINK,
+      AddTabTypes::ADD_ACTIVE, absl::nullopt, window);
 }
 
 bool GetTabURLAndTitleToSave(content::WebContents* web_contents,
@@ -336,12 +342,13 @@ WebContents* GetTabAndRevertIfNecessaryHelper(Browser* browser,
       const int index =
           browser->tab_strip_model()->GetIndexOfWebContents(current_tab);
       const auto group = browser->tab_strip_model()->GetTabGroupForTab(index);
+      HWND window = browser->tab_strip_model()->GetWindowForTab(index);
       browser->tab_strip_model()->AddWebContents(
           std::move(new_tab), -1, ui::PAGE_TRANSITION_LINK,
           (disposition == WindowOpenDisposition::NEW_FOREGROUND_TAB)
               ? AddTabTypes::ADD_ACTIVE
               : AddTabTypes::ADD_NONE,
-          group);
+          group, window);
       return raw_new_tab;
     }
     case WindowOpenDisposition::NEW_WINDOW: {
@@ -349,9 +356,12 @@ WebContents* GetTabAndRevertIfNecessaryHelper(Browser* browser,
       WebContents* raw_new_tab = new_tab.get();
       Browser* new_browser =
           Browser::Create(Browser::CreateParams(browser->profile(), true));
-      new_browser->tab_strip_model()->AddWebContents(std::move(new_tab), -1,
-                                                     ui::PAGE_TRANSITION_LINK,
-                                                     AddTabTypes::ADD_ACTIVE);
+      const int index =
+          browser->tab_strip_model()->GetIndexOfWebContents(current_tab);
+      HWND window = browser->tab_strip_model()->GetWindowForTab(index);
+      new_browser->tab_strip_model()->AddWebContents(
+          std::move(new_tab), -1, ui::PAGE_TRANSITION_LINK,
+          AddTabTypes::ADD_ACTIVE, absl::nullopt, window);
       new_browser->window()->Show();
       return raw_new_tab;
     }
@@ -937,6 +947,7 @@ void MoveTabsToNewWindow(Browser* browser,
     // Adjust tab index to account for tabs already moved.
     int adjusted_index = tab_indices[i] - i;
     bool pinned = browser->tab_strip_model()->IsTabPinned(adjusted_index);
+    HWND window = browser->tab_strip_model()->GetWindowForTab(adjusted_index);
     std::unique_ptr<WebContents> contents_move =
         browser->tab_strip_model()->DetachWebContentsAtForInsertion(
             adjusted_index);
@@ -948,9 +959,9 @@ void MoveTabsToNewWindow(Browser* browser,
     if (i == 0 || tab_indices[i] == active_index)
       add_types = add_types | AddTabTypes::ADD_ACTIVE;
 
-    new_browser->tab_strip_model()->AddWebContents(std::move(contents_move), -1,
-                                                   ui::PAGE_TRANSITION_TYPED,
-                                                   add_types, group);
+    new_browser->tab_strip_model()->AddWebContents(
+        std::move(contents_move), -1, ui::PAGE_TRANSITION_TYPED, add_types,
+        group, window);
   }
   new_browser->window()->Show();
 }
@@ -983,8 +994,9 @@ WebContents* DuplicateTabAt(Browser* browser, int index) {
     int add_types = AddTabTypes::ADD_ACTIVE | AddTabTypes::ADD_INHERIT_OPENER |
                     (pinned ? AddTabTypes::ADD_PINNED : 0);
     const auto old_group = tab_strip_model->GetTabGroupForTab(contents_index);
+    HWND window = tab_strip_model->GetWindowForTab(contents_index);
     tab_strip_model->InsertWebContentsAt(
-        contents_index + 1, std::move(contents_dupe), add_types, old_group);
+        contents_index + 1, std::move(contents_dupe), add_types, old_group, window);
   } else {
     CreateAndShowNewWindowWithContents(std::move(contents_dupe), browser);
   }
@@ -1012,13 +1024,16 @@ void MoveTabsToExistingWindow(Browser* source,
     // Adjust tab index to account for tabs already moved.
     int adjusted_index = tab_indices[i] - i;
     bool pinned = source->tab_strip_model()->IsTabPinned(adjusted_index);
+    HWND window = source->tab_strip_model()->GetWindowForTab(adjusted_index);
     std::unique_ptr<WebContents> contents_move =
         source->tab_strip_model()->DetachWebContentsAtForInsertion(
             adjusted_index);
     int add_types =
         AddTabTypes::ADD_ACTIVE | (pinned ? AddTabTypes::ADD_PINNED : 0);
     target->tab_strip_model()->AddWebContents(
-        std::move(contents_move), -1, ui::PAGE_TRANSITION_TYPED, add_types);
+        std::move(contents_move), -1, ui::PAGE_TRANSITION_TYPED, add_types,
+        absl::nullopt,
+        window);
   }
   target->window()->Show();
 }

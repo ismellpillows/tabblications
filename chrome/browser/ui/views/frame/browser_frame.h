@@ -154,6 +154,10 @@ class BrowserFrame : public views::Widget, public views::ContextMenuController {
     return native_browser_frame_;
   }
 
+  BrowserRootView* root_view() const {
+    return root_view_;
+  }
+
   void SetTabDragKind(TabDragKind tab_drag_kind);
   TabDragKind tab_drag_kind() const { return tab_drag_kind_; }
 

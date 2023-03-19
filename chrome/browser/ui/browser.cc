@@ -144,6 +144,7 @@
 #include "chrome/browser/ui/webui/signin/login_ui_service.h"
 #include "chrome/browser/ui/webui/signin/login_ui_service_factory.h"
 #include "chrome/browser/ui/window_sizer/window_sizer.h"
+#include "chrome/browser/ui/window_tabs.h"
 #include "chrome/browser/vr/vr_tab_helper.h"
 #include "chrome/common/chrome_constants.h"
 #include "chrome/common/chrome_features.h"
@@ -919,6 +920,8 @@ void Browser::OnWindowClosing() {
   if (should_quit_if_last_browser && ShouldStartShutdown()) {
     browser_shutdown::OnShutdownStarting(
         browser_shutdown::ShutdownType::kWindowClose);
+
+    WindowTabs::Disable();
   }
 
   // Don't use GetForProfileIfExisting here, we want to force creation of the

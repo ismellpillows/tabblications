@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_VIEWS_TABS_TAB_STRIP_H_
 #define CHROME_BROWSER_UI_VIEWS_TABS_TAB_STRIP_H_
 
+#include "base/win/windows_types.h"
+
 #include <map>
 #include <memory>
 #include <utility>
@@ -274,6 +276,7 @@ class TabStrip : public views::View,
   bool IsTabPinned(const Tab* tab) const override;
   bool IsTabFirst(const Tab* tab) const override;
   bool IsFocusInTabs() const override;
+  HWND GetWindowForTab(const Tab* tab) const override;
   void MaybeStartDrag(
       TabSlotView* source,
       const ui::LocatedEvent& event,

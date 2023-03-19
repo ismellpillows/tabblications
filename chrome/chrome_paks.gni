@@ -171,6 +171,7 @@ template("chrome_extra_paks") {
         "$root_gen_dir/chrome/tab_search_resources.pak",
         "$root_gen_dir/chrome/webui_gallery_resources.pak",
         "$root_gen_dir/chrome/whats_new_resources.pak",
+        "$root_gen_dir/chrome/window_tab_resources.pak",
         "$root_gen_dir/content/browser/devtools/devtools_resources.pak",
         "$root_gen_dir/content/browser/tracing/tracing_resources.pak",
       ]
@@ -206,6 +207,7 @@ template("chrome_extra_paks") {
         "//chrome/browser/resources/tab_search:resources",
         "//chrome/browser/resources/webui_gallery:resources",
         "//chrome/browser/resources/whats_new:resources",
+        "//chrome/browser/resources/window_tab:resources",
         "//content/browser/devtools:devtools_resources",
         "//content/browser/tracing:resources",
       ]

@@ -290,12 +290,10 @@ void TabIcon::MaybePaintFavicon(gfx::Canvas* canvas,
   }
 
   std::unique_ptr<gfx::ScopedCanvas> scoped_canvas;
-  bool use_scale_filter = false;
 
   if (GetShowingLoadingAnimation() ||
       favicon_fade_in_animation_.is_animating()) {
     scoped_canvas = std::make_unique<gfx::ScopedCanvas>(canvas);
-    use_scale_filter = true;
     // The favicon is initially inset with the width of the loading-animation
     // stroke + an additional dp to create some visual separation.
     const float kInitialFaviconInsetDp = 1 + kLoadingAnimationStrokeWidthDp;
@@ -333,9 +331,8 @@ void TabIcon::MaybePaintFavicon(gfx::Canvas* canvas,
     canvas->Translate(gfx::Vector2d(-bounds.x(), -bounds.y()));
   }
 
-  canvas->DrawImageInt(icon, 0, 0, bounds.width(), bounds.height(), bounds.x(),
-                       bounds.y(), bounds.width(), bounds.height(),
-                       use_scale_filter);
+  canvas->DrawImageInt(icon, 0, 0, icon.width(), icon.height(), bounds.x(),
+                       bounds.y(), bounds.width(), bounds.height(), true);
 }
 
 bool TabIcon::GetNonDefaultFavicon() const {

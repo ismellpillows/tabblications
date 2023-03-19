@@ -4,6 +4,8 @@
 
 #include "chrome/browser/ui/tabs/tab_strip_model.h"
 
+#include "base/win/windows_types.h"
+
 #include <memory>
 #include <set>
 #include <string>
@@ -334,9 +336,10 @@ int TabStripModel::InsertWebContentsAt(
     int index,
     std::unique_ptr<WebContents> contents,
     int add_types,
-    absl::optional<tab_groups::TabGroupId> group) {
+    absl::optional<tab_groups::TabGroupId> group,
+    HWND window) {
   ReentrancyCheck reentrancy_check(&reentrancy_guard_);
-  return InsertWebContentsAtImpl(index, std::move(contents), add_types, group);
+  return InsertWebContentsAtImpl(index, std::move(contents), add_types, group, window);
 }
 
 std::unique_ptr<content::WebContents> TabStripModel::ReplaceWebContentsAt(
@@ -786,6 +789,10 @@ int TabStripModel::SetTabPinned(int index, bool pinned) {
   return SetTabPinnedImpl(index, pinned);
 }
 
+void TabStripModel::SetTabWindow(int index, HWND window) {
+  contents_data_[index]->set_window(window);
+}
+
 bool TabStripModel::IsTabPinned(int index) const {
   CHECK(ContainsIndex(index)) << index;
   return contents_data_[index]->pinned();
@@ -830,6 +837,15 @@ absl::optional<tab_groups::TabGroupId> TabStripModel::GetSurroundingTabGroup(
   if (group != GetTabGroupForTab(index))
     return absl::nullopt;
   return group;
+}
+
+HWND TabStripModel::GetActiveTabWindow() const {
+  const int index = active_index();
+  return index == kNoTab ? nullptr : GetWindowForTab(index);
+}
+
+HWND TabStripModel::GetWindowForTab(int index) const {
+  return contents_data_[index]->window();
 }
 
 int TabStripModel::IndexOfFirstNonPinnedTab() const {
@@ -902,7 +918,8 @@ void TabStripModel::AddWebContents(
     int index,
     ui::PageTransition transition,
     int add_types,
-    absl::optional<tab_groups::TabGroupId> group) {
+    absl::optional<tab_groups::TabGroupId> group,
+    HWND window) {
   for (auto& observer : observers_)
     observer.OnTabWillBeAdded();
 
@@ -973,7 +990,7 @@ void TabStripModel::AddWebContents(
   WebContents* raw_contents = contents.get();
   InsertWebContentsAtImpl(index, std::move(contents),
                           add_types | (inherit_opener ? ADD_INHERIT_OPENER : 0),
-                          group);
+                          group, window);
   // Reset the index, just in case insert ended up moving it on us.
   index = GetIndexOfWebContents(raw_contents);
 
@@ -1759,7 +1776,8 @@ int TabStripModel::InsertWebContentsAtImpl(
     int index,
     std::unique_ptr<content::WebContents> contents,
     int add_types,
-    absl::optional<tab_groups::TabGroupId> group) {
+    absl::optional<tab_groups::TabGroupId> group,
+    HWND window) {
   delegate()->WillAddWebContents(contents.get());
 
   bool active = (add_types & ADD_ACTIVE) != 0;
@@ -1795,6 +1813,8 @@ int TabStripModel::InsertWebContentsAtImpl(
   // the group change until GroupTab called after OnTabStripModelChanged.
   data->set_group(group);
 
+  data->set_window(window);
+  
   TabStripSelectionChange selection(GetActiveWebContents(), selection_model_);
 
   contents_data_.insert(contents_data_.begin() + index, std::move(data));

@@ -4,6 +4,8 @@
 
 #include "chrome/browser/extensions/api/tabs/tabs_api.h"
 
+#include "base/win/windows_types.h"
+
 #include <stddef.h>
 #include <algorithm>
 #include <limits>
@@ -359,8 +361,11 @@ int MoveTabToWindow(ExtensionFunction* function,
   if (target_index > target_tab_strip->count() || target_index < 0)
     target_index = target_tab_strip->count();
 
+  HWND window = source_tab_strip->GetWindowForTab(source_index);
+
   return target_tab_strip->InsertWebContentsAt(
-      target_index, std::move(web_contents), AddTabTypes::ADD_NONE);
+      target_index, std::move(web_contents), AddTabTypes::ADD_NONE,
+      absl::nullopt, window);
 }
 
 // This function sets the state of the browser window to a "locked"
@@ -781,8 +786,10 @@ ExtensionFunction::ResponseAction WindowsCreateFunction::Run() {
           ExtensionTabUtil::GetEditableTabStripModel(new_window);
       if (!target_tab_strip)
         return RespondNow(Error(tabs_constants::kTabStripNotEditableError));
+      HWND window = source_tab_strip->GetWindowForTab(tab_index);
       target_tab_strip->InsertWebContentsAt(
-          urls.size(), std::move(detached_tab), AddTabTypes::ADD_NONE);
+          urls.size(), std::move(detached_tab), AddTabTypes::ADD_NONE,
+          absl::nullopt, window);
     }
   }
   // Create a new tab if the created window is still empty. Don't create a new

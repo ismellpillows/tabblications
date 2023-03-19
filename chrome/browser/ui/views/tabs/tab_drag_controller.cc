@@ -832,6 +832,8 @@ void TabDragController::InitDragData(TabSlotView* view,
     drag_data->contents = source_context_->GetTabStripModel()->GetWebContentsAt(
         drag_data->source_model_index.value());
     drag_data->pinned = source_context_->IsTabPinned(static_cast<Tab*>(view));
+    drag_data->window =
+        source_context_->GetWindowForTab(static_cast<Tab*>(view));
   }
   absl::optional<tab_groups::TabGroupId> tab_group_id = view->group();
   if (tab_group_id.has_value()) {
@@ -1464,7 +1466,7 @@ void TabDragController::Attach(TabDragContext* attached_context,
       CHECK(drag_data_[i].owned_contents);
       attached_context_->GetTabStripModel()->InsertWebContentsAt(
           index + i - first_tab_index(),
-          std::move(drag_data_[i].owned_contents), add_types, group_);
+          std::move(drag_data_[i].owned_contents), add_types, group_, drag_data_[i].window);
 
       // If a sad tab is showing, the SadTabView needs to be updated.
       SadTabHelper* sad_tab_helper =
@@ -2050,7 +2052,8 @@ void TabDragController::RevertDragAt(size_t drag_index) {
       //             somehow.
       source_context_->GetTabStripModel()->InsertWebContentsAt(
           target_index, std::move(detached_web_contents),
-          (data->pinned ? AddTabTypes::ADD_PINNED : 0));
+          (data->pinned ? AddTabTypes::ADD_PINNED : 0), absl::nullopt,
+          data->window);
     } else {
       // The Tab was moved within the TabDragContext where the drag
       // was initiated. Move it back to the starting location.
@@ -2074,7 +2077,8 @@ void TabDragController::RevertDragAt(size_t drag_index) {
     // We need to put it back into the source TabDragContext.
     source_context_->GetTabStripModel()->InsertWebContentsAt(
         target_index, std::move(data->owned_contents),
-        (data->pinned ? AddTabTypes::ADD_PINNED : 0));
+        (data->pinned ? AddTabTypes::ADD_PINNED : 0), absl::nullopt,
+        data->window);
   }
   TabStripModel* source_model = source_context_->GetTabStripModel();
   source_model->UpdateGroupForDragRevert(

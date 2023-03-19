@@ -117,7 +117,8 @@ bool ChromeLocationBarModelDelegate::ShouldDisplayURL() const {
 
   const auto is_ntp = [](const GURL& url) {
     return url.SchemeIs(content::kChromeUIScheme) &&
-           url.host() == chrome::kChromeUINewTabHost;
+           (url.host() == chrome::kChromeUINewTabHost ||
+            url.host() == chrome::kChromeUIWindowTabHost);
   };
 
   GURL url = entry->GetURL();

@@ -52,6 +52,7 @@ group("resources") {
       "tab_search:resources",
       "webui_gallery:resources",
       "whats_new:resources",
+      "window_tab:resources",
     ]
     if (is_chrome_branded) {
       public_deps += [

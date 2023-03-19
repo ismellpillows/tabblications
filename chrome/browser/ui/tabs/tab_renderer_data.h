@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_TABS_TAB_RENDERER_DATA_H_
 #define CHROME_BROWSER_UI_TABS_TAB_RENDERER_DATA_H_
 
+#include "base/win/windows_types.h"
+
 #include <string>
 
 #include "base/process/kill.h"
@@ -35,6 +37,7 @@ struct TabRendererData {
   // process died unexpectedly).
   bool IsCrashed() const;
 
+  HWND window = nullptr;
   gfx::ImageSkia favicon;
   scoped_refptr<ThumbnailImage> thumbnail;
   TabNetworkState network_state = TabNetworkState::kNone;

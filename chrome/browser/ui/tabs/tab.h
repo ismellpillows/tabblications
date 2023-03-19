@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_TABS_TAB_H_
 #define CHROME_BROWSER_UI_TABS_TAB_H_
 
+#include "base/win/windows_types.h"
+
 #include <memory>
 
 #include "base/memory/raw_ptr.h"
@@ -28,6 +30,7 @@ class TabBase {
   bool pinned() const { return pinned_; }
   bool blocked() const { return blocked_; }
   absl::optional<tab_groups::TabGroupId> group() const { return group_; }
+  HWND window() const { return window_; }
 
   void set_contents(std::unique_ptr<TContents> contents) {
     contents_ = contents;
@@ -42,6 +45,7 @@ class TabBase {
   void set_group(absl::optional<tab_groups::TabGroupId> group) {
     group_ = group;
   }
+  void set_window(HWND window) { window_ = window; }
 
   std::unique_ptr<TContents> ReplaceContents(
       std::unique_ptr<TContents> contents) {
@@ -56,6 +60,7 @@ class TabBase {
   bool pinned_ = false;
   bool blocked_ = false;
   absl::optional<tab_groups::TabGroupId> group_ = absl::nullopt;
+  HWND window_ = nullptr;
 };
 
 #endif  // CHROME_BROWSER_UI_TABS_TAB_H_

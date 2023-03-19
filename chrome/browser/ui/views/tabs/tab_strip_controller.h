@@ -5,6 +5,8 @@
 #ifndef CHROME_BROWSER_UI_VIEWS_TABS_TAB_STRIP_CONTROLLER_H_
 #define CHROME_BROWSER_UI_VIEWS_TABS_TAB_STRIP_CONTROLLER_H_
 
+#include "base/win/windows_types.h"
+
 #include <string>
 #include <vector>
 
@@ -62,6 +64,8 @@ class TabStripController {
 
   // Returns true if the selected index is pinned.
   virtual bool IsTabPinned(int index) const = 0;
+
+  virtual HWND GetWindowForTab(int index) const = 0;
 
   // Select the tab at the specified index in the model.
   // |event| is the input event that triggers the tab selection.

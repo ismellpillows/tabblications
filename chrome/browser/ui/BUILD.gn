@@ -334,6 +334,8 @@ static_library("ui") {
     "webui/webui_load_timer.h",
     "webui/webui_util.cc",
     "webui/webui_util.h",
+    "webui/window_tab/window_tab_ui.cc",
+    "webui/window_tab/window_tab_ui.h",
     "zoom/chrome_zoom_level_otr_delegate.cc",
     "zoom/chrome_zoom_level_otr_delegate.h",
     "zoom/chrome_zoom_level_prefs.cc",
@@ -1745,6 +1747,8 @@ static_library("ui") {
       "webui/whats_new/whats_new_util.h",
       "window_sizer/window_sizer.cc",
       "window_sizer/window_sizer.h",
+      "window_tabs.cc",
+      "window_tabs.h",
     ]
     if (is_chrome_branded) {
       sources += [

@@ -89,15 +89,13 @@ using content::WebContents;
 using WebExposedIsolationLevel =
     content::RenderFrameHost::WebExposedIsolationLevel;
 
-class BrowserNavigatorWebContentsAdoption {
- public:
-  static void AttachTabHelpers(content::WebContents* contents) {
-    TabHelpers::AttachTabHelpers(contents);
+void BrowserNavigatorWebContentsAdoption::AttachTabHelpers(
+    content::WebContents* contents) {
+  TabHelpers::AttachTabHelpers(contents);
 
-    // Make the tab show up in the task manager.
-    task_manager::WebContentsTags::CreateForTabContents(contents);
-  }
-};
+  // Make the tab show up in the task manager.
+  task_manager::WebContentsTags::CreateForTabContents(contents);
+}
 
 namespace {
 
